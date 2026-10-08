@@ -3,14 +3,12 @@
 ## 🤝 팀 작업 규칙
 
 ```
-feature-기능  →  dev  →  main
-              (PR+1명)  (PR+2명)
+feature-기능-이름  →  feature-기능  →  dev  →  main
+   (개인 작업)          (PR)       (PR+1명)  (PR+2명)
+        ↑ 충돌 시 fixed-기능-이름 에서 해결 후 다시 넣기
 ```
 
-| 문서 | 대상 | 내용 |
-|---|---|---|
-| **[docs/TEAM_GUIDE.md](docs/TEAM_GUIDE.md)** | 팀원 전체 | 브랜치 쓰는 법, 하루 작업 순서, 명령어, 용어 설명 |
-| [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md) | 관리자 | 브랜치 규칙·보호 규칙을 처음부터 만드는 방법 |
+👉 **[docs/Github_Strategy.md](docs/Github_Strategy.md)** — 브랜치 쓰는 법, 충돌 해결, 승인 규칙, 구축 방법, 용어 설명
 
 ## 📌 진행 상황
 
