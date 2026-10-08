@@ -1,3 +1,28 @@
+# ThreeJ 팀 Pintos
+
+## 🤝 팀 작업 규칙
+
+```
+feature-기능  →  dev  →  main
+              (PR+1명)  (PR+2명)
+```
+
+| 문서 | 대상 | 내용 |
+|---|---|---|
+| **[docs/TEAM_GUIDE.md](docs/TEAM_GUIDE.md)** | 팀원 전체 | 브랜치 쓰는 법, 하루 작업 순서, 명령어, 용어 설명 |
+| [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md) | 관리자 | 브랜치 규칙·보호 규칙을 처음부터 만드는 방법 |
+
+## 📌 진행 상황
+
+| 항목 | 상태 |
+|---|---|
+| 원본 보존 태그 `v0-skeleton` | ✅ |
+| `dev` 브랜치 + 보호 규칙 (main 2명 / dev 1명 승인) | ✅ |
+| 팀원 초대 | ✅ |
+| Project 1: threads | ⏳ 시작 전 |
+
+---
+
 # 📘 Docker기반 Pintos 개발 환경 구축 가이드 
 
 이 문서는 **Windows**와 **macOS** 사용자가 Docker와 VSCode DevContainer 기능을 활용하여 Pintos OS 프로젝트를 빠르게 구축할 수 있도록 도와줍니다.
