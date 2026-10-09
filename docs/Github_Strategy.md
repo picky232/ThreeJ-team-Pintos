@@ -13,7 +13,8 @@
 [7. 브랜치를 지워도 기록이 남나요?](#7-브랜치를-지워도-기록이-남나요) ·
 [8. 하지 말 것](#8-하지-말-것-) ·
 [9. 처음 시작하는 팀원](#9-처음-시작하는-팀원) ·
-[10. 구축 방법 (관리자)](#10-구축-방법-관리자) ·
+[10. TIL · 회의록 제출](#10-til--회의록-제출) ·
+[11. 구축 방법 (관리자)](#11-구축-방법-관리자) ·
 [용어 사전](#-용어-사전)
 
 ---
@@ -46,12 +47,14 @@ flowchart LR
 |---|---|---|---|---|---|
 | 최종본 | `main` | — | 팀 전체 | PR + **2명 승인**, 직접 push 금지 | 영구 보존 |
 | 통합 | `dev` | — | 팀 전체 | PR + **1명 승인**, 직접 push 금지 | 영구 보존 |
-| 기능 | `feature-<기능>` | `feature-priority` | 팀 전체 공유 | 없음 | dev 에 합쳐지면 **자동 삭제** |
-| 개인 작업 | `feature-<기능>-<이름>` | `feature-priority-kim` | 본인 | 없음 | 기능 브랜치에 합쳐지면 **자동 삭제** |
+| 기능 | `feature-<기능>` | `feature-priority` | 팀 전체 공유 | 없음 | dev 에 합쳐져도 **유지** (삭제 X) |
+| 개인 작업 | `feature-<기능>-<이름>` | `feature-priority-kim` | 본인 | 없음 | 머지 후 PR 화면 **Delete branch** 로 직접 삭제 |
 | 충돌 해결 | `fixed-<기능>-<이름>` | `fixed-priority-lee` | 본인 | 없음 | 해결 후 직접 삭제 |
+| TIL 제출 | `til-<MMDD>-<GitHub ID>` | `til-1009-picky232` | 본인 | 없음 | 머지 후 PR 화면 **Delete branch** 로 직접 삭제 |
 
 - 이름은 **영어 소문자 + 하이픈(`-`)** 만 사용 (한글 X)
 - 개인 브랜치의 **마지막 단어 = 내 이름**. 기능 이름은 기능 브랜치와 똑같이.
+- 레포의 **머지 후 자동 삭제는 꺼져 있습니다.** 기능 브랜치는 남겨 두고, 개인 · TIL 브랜치만 직접 지웁니다.
 
 ---
 
@@ -123,7 +126,7 @@ gh pr create --base feature-priority --fill
 
 - 승인 없이 **본인이 바로 머지** 가능 → **Create a merge commit** 클릭
 - 충돌 표시가 뜨면 → [5. 충돌이 났을 때](#5-충돌이-났을-때-fixed-브랜치)
-- 머지되면 내 개인 브랜치는 자동 삭제됨. 다음 함수는 ② 부터 다시 (최신 기능 브랜치에서 새로 따기)
+- 머지되면 PR 화면의 **Delete branch** 버튼으로 내 개인 브랜치 삭제 (자동 삭제 안 됨). 다음 함수는 ② 부터 다시 (최신 기능 브랜치에서 새로 따기)
 
 ### ⑤ 기능 완성 → dev 로 PR (1명 승인)
 
@@ -135,7 +138,7 @@ gh pr list --base feature-priority
 ```bash
 gh pr create --base dev --head feature-priority --fill
 ```
-- 팀원 1명이 승인 → 머지 → `feature-priority` 자동 삭제
+- 팀원 1명이 승인 → 머지 → `feature-priority` 는 **지우지 않고 유지**
 - 머지 후 dev 를 받아서 테스트:
   ```bash
   git fetch origin && git switch dev && git pull && cd pintos/threads && make && cd build && make check
@@ -217,6 +220,7 @@ git branch -d fixed-priority-lee
 | fixed → 개인 | 없음 (로컬에서 합침) | 본인 |
 | 기능 → dev | **1명** | 승인 받은 뒤 작성자 |
 | dev → main | **나를 뺀 2명** (= 나머지 팀원 전원) | 승인 받은 뒤 작성자 |
+| TIL → dev (`til-MMDD-ID` → `dev`) | **1명** | 승인 받은 뒤 작성자 |
 
 - GitHub 는 **PR 작성자 본인의 승인은 세지 않습니다.**
 - 승인 뒤에 코드를 또 push 하면 **승인이 취소**되고 다시 받아야 합니다 (dev, main).
@@ -234,7 +238,7 @@ git branch -d fixed-priority-lee
 - merge commit 메시지에 **브랜치 이름이 영구히** 남습니다.
   예: `Merge pull request #12 from picky232/feature-priority-kim`
 - **PR 페이지도 영구 보존**됩니다 (커밋 목록, 코멘트, 변경 내용). 필요하면 PR 화면의 **Restore branch** 로 브랜치를 되살릴 수 있습니다.
-- 자동 삭제는 **머지된 PR 의 브랜치에만** 일어나므로 안전합니다.
+- 브랜치 삭제는 **머지된 PR 의 브랜치만** 하세요. PR 화면의 **Delete branch** 버튼은 머지된 뒤에만 나타나므로 안전합니다.
 - 단, **머지 안 한 브랜치를 직접 지우면** 그 커밋은 사라질 수 있으니 주의.
 
 누가 무엇을 했는지 보기:
@@ -252,7 +256,8 @@ git log --oneline --merges
 | 하지 말 것 | 이유 |
 |---|---|
 | `main` / `dev` 에 직접 push | 막혀 있음. 반드시 PR |
-| 개인 PR 이 열린 채로 기능 → dev 머지 | 기능 브랜치가 자동 삭제되면서 남은 PR 의 대상이 dev 로 바뀌어 버림 |
+| 개인 PR 이 열린 채로 기능 → dev 머지 | 아직 안 합쳐진 개인 작업이 빠진 채로 dev 에 올라감 |
+| 기능 브랜치 `feature-<기능>` 삭제 | 팀이 계속 쓰는 브랜치. 머지 후에도 유지 |
 | `feature-*` → `main` 바로 PR | dev 에서 시험을 안 거친 코드가 최종본에 들어감 |
 | 테스트 안 하고 PR | 자동 테스트가 없어서 내가 확인 안 하면 아무도 모름 |
 | `printf` 디버그 출력 남기고 PR | Pintos 테스트는 출력 비교라서 FAIL 됨 |
@@ -280,7 +285,68 @@ git log --oneline --merges
 
 ---
 
-## 10. 구축 방법 (관리자)
+## 10. TIL · 회의록 제출
+
+매일 AI 와 학습 · 작업한 내용을 md 로 정리해서 팀원과 공유합니다. (논의: #6)
+
+### 폴더 구조
+
+```
+docs/
+└── 2026-10-09/
+    ├── TIL/
+    │   ├── picky232.md
+    │   ├── Jongeume.md
+    │   └── jaeyun-sw-ai.md
+    ├── scrum.md        ← 스크럼 회의록
+    └── coretime.md     ← 코어타임 회의록
+```
+
+- TIL 파일 이름 = **내 GitHub ID** (대소문자 그대로, 예: `Jongeume.md`)
+- **1인 1일 1파일.** AI 세션을 여러 개 썼으면 세션 내용을 **하나로 합쳐서** 제출
+- 회의록은 날짜 폴더 바로 아래에 회의 1건 = 파일 1개 (기록자가 작성)
+- 그날 폴더가 없으면 직접 만들기: `docs/YYYY-MM-DD/TIL/`
+
+### 제출 흐름
+
+```mermaid
+flowchart LR
+    A["til-1009-picky232"] -->|"PR + 1명 승인<br/>TIL : 2026-10-09 picky232"| D["dev"]
+    B["til-1009-jongeume"] -->|"PR + 1명 승인"| D
+    C["til-1009-jaeyun-sw-ai"] -->|"PR + 1명 승인"| D
+    D -->|"하루 1번 PR + 2명 승인<br/>TIL : 2026-10-09"| M["main"]
+```
+
+**① TIL 브랜치 만들기** (항상 `origin/dev` 에서)
+```bash
+git fetch origin && git switch -c til-1009-picky232 origin/dev
+```
+- 브랜치 이름: `til-<MMDD>-<GitHub ID>`. 브랜치는 **소문자만** 쓰므로 ID 에 대문자가 있으면 소문자로 (`Jongeume` → `til-1009-jongeume`)
+
+**② 파일 작성** → `docs/2026-10-09/TIL/picky232.md`
+
+**③ 커밋 + push**
+```bash
+git add docs && git commit -m "docs: TIL 2026-10-09 picky232" && git push -u origin HEAD
+```
+
+**④ dev 로 PR** — 제목 형식 `TIL : <날짜> <GitHub ID>`
+```bash
+gh pr create --base dev --title "TIL : 2026-10-09 picky232" --body "Refs #6"
+```
+- 팀원 1명이 읽고 승인 → 머지 → PR 화면 **Delete branch**
+- 회의록(`scrum.md`, `coretime.md`)은 기록자가 자기 TIL PR 에 같이 넣거나, 같은 방식으로 따로 PR
+
+**⑤ 하루 마무리 — dev → main PR** — 제목 형식 `TIL : <날짜>`
+```bash
+gh pr create --base main --head dev --title "TIL : 2026-10-09" --body "Refs #6"
+```
+- 나를 뺀 2명 승인 → 머지
+- ⚠️ 그날 dev 에 들어간 **코드 변경도 같이 main 으로 갑니다.** dev 가 테스트를 통과한 상태인지 확인하고 올리기
+
+---
+
+## 11. 구축 방법 (관리자)
 
 > 이 레포는 아래 설정이 **이미 모두 적용**되어 있습니다. 다음에 새 레포를 만들 때 참고하세요.
 > 필요한 것: 레포 **관리자 권한**, 레포 **공개(Public)** 유지 (개인 무료 계정은 공개 레포에서만 보호 규칙 사용 가능)
@@ -309,14 +375,14 @@ git switch -c dev && git push -u origin dev
 | Pull Requests | ✅ Allow merge commits | 세부 커밋 기록 보존 |
 | Pull Requests | ⬜ Allow squash merging | 커밋이 하나로 뭉쳐져 기록이 사라짐 |
 | Pull Requests | ⬜ Allow rebase merging | 기록이 다시 써짐 |
-| Pull Requests | ✅ Automatically delete head branches | 머지된 브랜치 자동 정리 |
+| Pull Requests | ⬜ Automatically delete head branches | 레포 전체에 적용돼서 기능 브랜치까지 지워짐. 개인 · TIL 브랜치는 직접 삭제 |
 
 터미널로 한 번에:
 ```bash
-gh api -X PATCH repos/picky232/ThreeJ-team-Pintos -F delete_branch_on_merge=true -F allow_squash_merge=false -F allow_rebase_merge=false -F allow_merge_commit=true -f default_branch=main
+gh api -X PATCH repos/picky232/ThreeJ-team-Pintos -F delete_branch_on_merge=false -F allow_squash_merge=false -F allow_rebase_merge=false -F allow_merge_commit=true -f default_branch=main
 ```
 
-> 자동 삭제를 켜도 main · dev 는 ③ 의 `keep-main-dev`(우회 없는 삭제 금지) 덕분에 지워지지 않습니다.
+> 자동 삭제는 브랜치별로 켜고 끌 수 없어서, `feature-<기능>` 을 남기려고 **레포 전체에서 끕니다.**
 
 ### ③ 보호 규칙 — Settings → Rules → Rulesets → New branch ruleset
 
@@ -338,8 +404,8 @@ gh api -X PATCH repos/picky232/ThreeJ-team-Pintos -F delete_branch_on_merge=true
 > ⚠️ **bypass(우회) 주의 — 왜 `keep-main-dev` 가 따로 있나요?**
 > bypass 는 규칙 하나가 아니라 **그 규칙 묶음 전체**를 건너뜁니다.
 > `protect-main` / `protect-dev` 에 관리자 우회를 넣으면 승인뿐 아니라 **삭제 금지도 관리자에게는 꺼집니다.**
-> "머지 후 자동 삭제" 는 머지 버튼을 누른 사람 권한으로 실행되기 때문에, 관리자가 `dev → main` 을 머지하면 **dev 가 자동 삭제**됩니다 (실제로 발생했던 일).
-> 그래서 삭제 금지만 담은 **우회 없는 규칙**(`keep-main-dev`)을 따로 둡니다.
+> 예전에 "머지 후 자동 삭제" 를 켜 뒀을 때, 관리자가 `dev → main` 을 머지하자 **dev 가 자동 삭제**됐습니다 (자동 삭제는 머지한 사람 권한으로 실행됨).
+> 지금은 자동 삭제를 껐지만, 관리자의 실수 삭제까지 막으려고 삭제 금지만 담은 **우회 없는 규칙**(`keep-main-dev`)을 따로 둡니다.
 > 관리자에게도 반드시 걸려야 하는 규칙은 항상 **우회 없는 별도 규칙**으로 만드세요.
 
 <details>
@@ -441,3 +507,4 @@ git push origin --delete dev
 | **gh (GitHub CLI)** | GitHub 를 터미널에서 다루는 공식 도구 (`gh auth login` 으로 로그인) |
 | **make check** | Pintos 공식 테스트 전체를 실행하는 명령 |
 | **PASS / FAIL** | Pintos 테스트 통과 / 실패 |
+| **TIL (Today I Learned)** | 오늘 배운 내용을 정리한 기록. 우리 팀은 `docs/날짜/TIL/GitHub ID.md` 로 매일 제출 |
