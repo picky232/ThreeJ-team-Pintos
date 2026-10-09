@@ -8,7 +8,9 @@ feature-기능-이름  →  feature-기능  →  dev  →  main
         ↑ 충돌 시 fixed-기능-이름 에서 해결 후 다시 넣기
 ```
 
-👉 **[docs/Github_Strategy.md](docs/Github_Strategy.md)** — 브랜치 쓰는 법, 충돌 해결, 승인 규칙, 구축 방법, 용어 설명
+👉 **[docs/Github_Strategy.md](docs/Github_Strategy.md)** — 브랜치 쓰는 법, 충돌 해결, 승인 규칙, TIL 제출, 구축 방법, 용어 설명
+
+📝 **TIL**: 매일 `docs/날짜/TIL/<GitHub ID>.md` → `til-MMDD-ID` 브랜치 → dev PR `TIL : 날짜 ID` ([10장](docs/Github_Strategy.md#10-til--회의록-제출))
 
 ## 📌 진행 상황
 
@@ -17,6 +19,8 @@ feature-기능-이름  →  feature-기능  →  dev  →  main
 | 원본 보존 태그 `v0-skeleton` | ✅ |
 | `dev` 브랜치 + 보호 규칙 (main 2명 / dev 1명 승인) | ✅ |
 | 팀원 초대 | ✅ |
+| 머지 후 브랜치 자동 삭제 해제 (기능 브랜치 유지) | ✅ |
+| TIL 날짜 폴더 (`docs/2026-10-09` ~ `2026-10-15`) | ✅ |
 | Project 1: threads | ⏳ 시작 전 |
 
 ---
