@@ -342,6 +342,8 @@ gh pr create --base dev --title "TIL : 2026-10-09 picky232" --body "Refs #6"
 gh pr create --base main --head dev --title "TIL : 2026-10-09" --body "Refs #6"
 ```
 - 나를 뺀 2명 승인 → 머지
+- **그날 TIL PR 이 모두 dev 에 머지된 뒤에** 열기. 열린 뒤 dev 에 새로 머지되면 main 승인이 취소되어 다시 받아야 함
+- `dev → main` PR 은 한 번에 하나만 열 수 있음. **전날 PR 이 머지됐는지** 먼저 확인 (`gh pr list --base main`)
 - ⚠️ 그날 dev 에 들어간 **코드 변경도 같이 main 으로 갑니다.** dev 가 테스트를 통과한 상태인지 확인하고 올리기
 
 ---
