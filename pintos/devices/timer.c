@@ -89,12 +89,18 @@ timer_elapsed (int64_t then) {
 
 /* Suspends execution for approximately TICKS timer ticks. */
 void
-timer_sleep (int64_t ticks) {
-	int64_t start = timer_ticks ();
+timer_sleep (int64_t sleep_ticks) {
+	int64_t wakeup_tick;
 
 	ASSERT (intr_get_level () == INTR_ON);
-	while (timer_elapsed (start) < ticks)
-		thread_yield ();
+
+	if (sleep_ticks <= 0)
+		return;
+
+	/* 깨울 시각 = 지금 tick + 재울 tick.
+	   절대 시각으로 저장해야 깨울 때 지금 tick 과 한 번만 비교하면 된다. */
+	wakeup_tick = timer_ticks () + sleep_ticks;
+	thread_sleep (wakeup_tick);
 }
 
 /* Suspends execution for approximately MS milliseconds. */
