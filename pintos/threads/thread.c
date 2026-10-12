@@ -329,6 +329,23 @@ cmp_wakeup_tick (const struct list_elem *a, const struct list_elem *b,
 	return thread_a->wakeup_tick < thread_b->wakeup_tick;
 }
 
+/* 깨울 시각이 NOW_TICK 이하인 스레드를 sleep_list 에서 꺼내 READY 로 만든다.
+   timer_interrupt 안에서 불리므로 인터럽트는 이미 꺼져 있다. */
+void
+thread_wakeup (int64_t now_tick) {
+	/* 목록이 깨울 시각 순이라, 아직 깰 때가 아닌 스레드를 만나면 뒤는 볼 필요가 없다. */
+	while (!list_empty (&sleep_list)) {
+		struct thread *t = list_entry (list_front (&sleep_list),
+				struct thread, elem);
+
+		if (t->wakeup_tick > now_tick)
+			break;
+
+		list_pop_front (&sleep_list);
+		thread_unblock (t);
+	}
+}
+
 /* Yields the CPU.  The current thread is not put to sleep and
    may be scheduled again immediately at the scheduler's whim. */
 void

@@ -125,6 +125,8 @@ timer_print_stats (void) {
 static void
 timer_interrupt (struct intr_frame *args UNUSED) {
 	ticks++;
+	/* 깨울 시각이 된 스레드를 READY 로 만든다. */
+	thread_wakeup (ticks);
 	thread_tick ();
 }
 
