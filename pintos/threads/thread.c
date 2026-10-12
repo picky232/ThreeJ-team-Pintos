@@ -26,7 +26,7 @@
 
 /* List of processes in THREAD_READY state, that is, processes
    that are ready to run but not actually running. */
-static struct list ready_list;
+static struct list ready_list;  
 
 /* Idle thread. */
 static struct thread *idle_thread;
@@ -398,7 +398,7 @@ kernel_thread (thread_func *function, void *aux) {
 /* Does basic initialization of T as a blocked thread named
    NAME. */
 static void
-init_thread (struct thread *t, const char *name, int priority) {
+ init_thread(struct thread *t, const char *name, int priority) {
 	ASSERT (t != NULL);
 	ASSERT (PRI_MIN <= priority && priority <= PRI_MAX);
 	ASSERT (name != NULL);
@@ -409,6 +409,7 @@ init_thread (struct thread *t, const char *name, int priority) {
 	t->tf.rsp = (uint64_t) t + PGSIZE - sizeof (void *);
 	t->priority = priority;
 	t->magic = THREAD_MAGIC;
+	t-> wakeup_tick = 0;   /* modify */
 }
 
 /* Chooses and returns the next thread to be scheduled.  Should
