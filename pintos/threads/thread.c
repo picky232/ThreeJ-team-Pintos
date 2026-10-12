@@ -24,6 +24,9 @@
    Do not modify this value. */
 #define THREAD_BASIC 0xd42df210
 
+/* 잠든 스레드 목록. 깨울 시각이 이른 순으로 둔다. alarm. */
+static struct list sleep_list;
+
 /* List of processes in THREAD_READY state, that is, processes
    that are ready to run but not actually running. */
 static struct list ready_list;
@@ -55,6 +58,10 @@ static unsigned thread_ticks;   /* # of timer ticks since last yield. */
 bool thread_mlfqs;
 
 static void kernel_thread (thread_func *, void *aux);
+
+/* 두 스레드의 깨울 시각을 비교한다. */
+static bool cmp_wakeup_tick (const struct list_elem *a,
+		const struct list_elem *b, void *aux);
 
 static void idle (void *aux UNUSED);
 static struct thread *next_thread_to_run (void);
@@ -109,6 +116,7 @@ thread_init (void) {
 	lock_init (&tid_lock);
 	list_init (&ready_list);
 	list_init (&destruction_req);
+	list_init (&sleep_list);
 
 	/* Set up a thread structure for the running thread. */
 	initial_thread = running_thread ();
@@ -290,6 +298,35 @@ thread_exit (void) {
 	intr_disable ();
 	do_schedule (THREAD_DYING);
 	NOT_REACHED ();
+}
+
+/* 현재 스레드를 WAKEUP_TICK 까지 재운다.
+   sleep_list 에 깨울 시각 순으로 넣고 block 한다.
+   깨우는 일은 timer_interrupt 가 부르는 thread_wakeup 이 맡는다. */
+void
+thread_sleep (int64_t wakeup_tick) {
+	struct thread *curr = thread_current ();
+	enum intr_level old_level;
+
+	/* sleep_list 는 타이머 인터럽트도 읽고, thread_block 은 인터럽트가
+	   꺼진 채로 불러야 해서 넣고 재우는 동안 인터럽트를 막는다. */
+	old_level = intr_disable ();
+	curr->wakeup_tick = wakeup_tick;
+	/* 깨울 시각 순으로 넣어 두면, 깨울 때 맨 앞만 보면 된다. */
+	list_insert_ordered (&sleep_list, &curr->elem, cmp_wakeup_tick, NULL);
+	thread_block ();
+	intr_set_level (old_level);
+}
+
+/* list_less_func. A 의 깨울 시각이 B 보다 이르면 참.
+   같으면 거짓이라, 깨울 시각이 같으면 먼저 잠든 스레드가 앞에 남는다. */
+static bool
+cmp_wakeup_tick (const struct list_elem *a, const struct list_elem *b,
+		void *aux UNUSED) {
+	const struct thread *thread_a = list_entry (a, struct thread, elem);
+	const struct thread *thread_b = list_entry (b, struct thread, elem);
+
+	return thread_a->wakeup_tick < thread_b->wakeup_tick;
 }
 
 /* Yields the CPU.  The current thread is not put to sleep and
