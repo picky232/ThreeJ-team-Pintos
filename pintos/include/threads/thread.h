@@ -28,6 +28,12 @@ typedef int tid_t;
 #define PRI_DEFAULT 31                  /* Default priority. */
 #define PRI_MAX 63                      /* Highest priority. */
 
+struct donation{
+	struct lock *wait_lock;				/* 기다리는 lock */
+	struct list donated_list;	 		/* 기부한 스레드들 */
+	struct list_elem don_elem;			/* donated_list에 넣을 고리 */
+};
+
 /* A kernel thread or user process.
  *
  * Each thread structure is stored in its own 4 kB page.  The
@@ -91,7 +97,9 @@ struct thread {
 	enum thread_status status;          /* Thread state. */
 	char name[16];                      /* Name (for debugging purposes). */
 	int priority;                       /* Priority. */
+	int init_priority;  				/* 원본 priority */
 
+	struct donation donate_box;			/* 도네이션용 lock_wait(대기중인 락), 기부한 스레드 리스트, 리스트에 엮기 위한 elem */
 	/* Shared between thread.c and synch.c. */
 	struct list_elem elem;              /* List element. */
 
@@ -152,5 +160,15 @@ void thread_wake_up (int64_t ticks);
 
 /* wake_tick이 더 작은지 큰지 판단하는 함수 sleep_list에 넣을때 정렬해서 넣기 위해 필요함. */
 bool check_thread_less (const struct list_elem *a, const struct list_elem *b, void *aux);
+
+/* ready_list 정렬을 우선순위에 따라 맞추도록 돕는 함수 */
+bool thread_priority_greater(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
+
+/* lock_release 에서 list_max 로 가장 높은 기부자를 찾을 때 쓰는 비교 함수.
+   donated_list 의 고리(don_elem)로 꺼내며, a 가 b 보다 낮으면 true. */
+bool donation_priority_less (const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
+
+/* 스레드 우선순위 확인 후 스위칭 */
+void thread_priority_switch (void);
 
 #endif /* threads/thread.h */

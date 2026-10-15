@@ -66,6 +66,39 @@ static void do_schedule(int status);
 static void schedule (void);
 static tid_t allocate_tid (void);
 
+bool
+donation_priority_less (const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
+{
+	struct thread *donor_a = list_entry (a, struct thread, donate_box.don_elem);
+	struct thread *donor_b = list_entry (b, struct thread, donate_box.don_elem);
+
+	return (donor_a->priority < donor_b->priority) ? true : false;
+}
+
+/* ready_list 정렬을 우선순위에 따라 맞추도록 돕는 함수 */
+bool thread_priority_greater(const struct list_elem *a, const struct list_elem *b, void *aux UNUSED)
+{
+	struct thread *at = list_entry(a, struct thread, elem);
+	struct thread *bt = list_entry(b, struct thread, elem);
+	/* 우선순위 확인 */
+	if ( at->priority > bt->priority )
+		return true;
+	return false;
+}
+
+/* 스레드 우선순위 확인 후 스위칭 */
+void
+thread_priority_switch (void) {
+	enum intr_level old = intr_disable();
+    if (!list_empty (&ready_list)) {
+        struct thread *rt = list_entry (list_begin (&ready_list), struct thread, elem);
+        if (thread_current ()->priority < rt->priority)
+			if (intr_context()) intr_yield_on_return();
+            else thread_yield ();
+    }
+	intr_set_level(old);
+}
+
 /* 현재 스레드를 sleep_list에 넣고 block상태로 바꿔줌 timer_sleep에서 사용됨 */
 void
 thread_sleep (int64_t wake_up_ticks)
@@ -116,6 +149,8 @@ thread_wake_up(int64_t ticks)
 		/* sleep_list에서 추출 */
 		e = list_remove(e);
 		thread_unblock(t);
+		/* 깨어난 스레드의 우선순위가 더 높으면 바로 스위칭 */
+		thread_priority_switch();
 	}
 }
 
@@ -264,6 +299,9 @@ thread_create (const char *name, int priority,
 
 	/* Add to run queue. */
 	thread_unblock (t);
+	
+	/* 깨어난 스레드의 우선순위가 더 높으면 바로 스위칭 */
+	thread_priority_switch();
 
 	return tid;
 }
@@ -298,7 +336,8 @@ thread_unblock (struct thread *t) {
 
 	old_level = intr_disable ();
 	ASSERT (t->status == THREAD_BLOCKED);
-	list_push_back (&ready_list, &t->elem);
+	/* 정렬된 상태로 ready_list에 정렬 */
+	list_insert_ordered (&ready_list, &t->elem, thread_priority_greater, NULL);
 	t->status = THREAD_READY;
 	intr_set_level (old_level);
 }
@@ -361,7 +400,8 @@ thread_yield (void) {
 
 	old_level = intr_disable ();
 	if (curr != idle_thread)
-		list_push_back (&ready_list, &curr->elem);
+		/* 양보하고 ready_list에 넣을때도 정렬된 상태로 삽입 */
+		list_insert_ordered (&ready_list, &curr->elem, thread_priority_greater, NULL);
 	do_schedule (THREAD_READY);
 	intr_set_level (old_level);
 }
@@ -369,7 +409,19 @@ thread_yield (void) {
 /* Sets the current thread's priority to NEW_PRIORITY. */
 void
 thread_set_priority (int new_priority) {
-	thread_current ()->priority = new_priority;
+
+	/* 우선순위를 기부받은 상태인지 확인.
+	   기부 중이면 원래 값만 바꾸고, 지금 값은 lock_release 때 반영된다. */	
+	if (thread_current ()->init_priority != thread_current () ->priority){
+		thread_current ()->init_priority = new_priority;
+	}
+	else{
+		thread_current ()->init_priority = new_priority;
+		thread_current ()->priority = new_priority;
+	}
+
+	/* 우선순위가 낮아지면 바꿈 */
+	thread_priority_switch();
 }
 
 /* Returns the current thread's priority. */
@@ -466,6 +518,9 @@ init_thread (struct thread *t, const char *name, int priority) {
 	strlcpy (t->name, name, sizeof t->name);
 	t->tf.rsp = (uint64_t) t + PGSIZE - sizeof (void *);
 	t->priority = priority;
+	t->init_priority = priority; 			/* init_priority를 초기화 */
+	t->donate_box.wait_lock = NULL; 		/* wait_lock 초기화 */
+	list_init(&t->donate_box.donated_list); /* donated_list 초기화 */
 	t->magic = THREAD_MAGIC;
 }
 
